@@ -5,27 +5,51 @@ const shaderVert = glslify('./../shaders/custom.vert')
 const shaderFrag = glslify('./../shaders/custom.frag')
 
 class Main extends AbstractApplication {
-    constructor(){
+  constructor(){
+    super();
 
-        super();
+    let canvas = document.createElement('canvas')
+    canvas.width = 256;
+    canvas.height = 256;
+    canvas.id = 'texture';
+    this._texture = {
+      ctx: canvas.getContext('2d'),
+      canvas: canvas,
+      tex: new THREE.Texture(canvas)
+    };
+    canvas.addEventListener("mousemove", (e) => this.updateMouse(e));
+    document.body.appendChild(canvas);
+    
+    var geometry = new THREE.BoxGeometry(200, 200, 200);
+    var material = new THREE.MeshBasicMaterial({ map: this._texture.tex });
 
-        var texture = new THREE.TextureLoader().load( 'textures/crate.gif' );
+    this._mesh = new THREE.Mesh(geometry, material);
+    this._scene.add(this._mesh);
+    this._mousePos = {};
 
-        var geometry = new THREE.BoxGeometry( 200, 200, 200 );
-        var material = new THREE.MeshBasicMaterial( { map: texture } );
+    this.animate();
+  }
 
-        var material2 = new THREE.ShaderMaterial({
-            vertexShader: shaderVert,
-            fragmentShader: shaderFrag
-        });
+  updateMouse(evt) {
+    var rect = this._texture.canvas.getBoundingClientRect();
+    const pos = {
+      x: evt.clientX - rect.left,
+      y: evt.clientY - rect.top
+    };
 
+    this._mousePos = pos;
+  }
 
-        this._mesh = new THREE.Mesh( geometry, material2 );
-        this._scene.add( this._mesh );
+  update() {
+    let { ctx } = this._texture;
+    let { x, y } = this._mousePos;
+    ctx.fillStyle = "rgb(200,0,0)";  
+    ctx.fillRect(10, 10, 55, 50);
 
-        this.animate();
+    ctx.fillStyle = "#000000";
+    ctx.fillRect (x, y, 4, 4);
 
-    }
-
+    this._texture.tex.needsUpdate = true;
+  }
 }
 export default Main;
